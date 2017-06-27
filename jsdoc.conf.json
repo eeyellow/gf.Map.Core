@@ -1,0 +1,40 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "source": {
+        "include": ["src"],
+        "includePattern": ".+\\.js(doc)?$",
+        "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "opts": {        
+        "template": "node_modules/ink-docstrap/template",       //使用docstrap樣板
+        "encoding": "utf8",                                     //編碼
+        "destination": "./doc/",                                //輸出路徑
+        "recurse": true                                         //是否遞迴掃描子目錄
+    },
+    //樣板設定
+    "templates": {
+        "cleverLinks": true,
+        "monospaceLinks": true,
+        
+        "applicationName": "gf.TreeLayer.js",
+        "openGraph": {},
+        "meta": {},
+        "systemName"            : "gf.TreeLayer.js",
+        "footer"                : "",
+        "copyright"             : "© Copyright GeoForce Technologies Co., Ltd All Right Reserved",
+        "includeDate"           : false,
+        "navType"               : "vertical",
+        "theme"                 : "Yeti",
+        "linenums"              : true,
+        "collapseSymbols"       : true,
+        "inverseNav"            : true,
+        "outputSourceFiles"     : false,
+        "outputSourcePath"      : false,
+        "dateFormat"            : "YYYY-MM-DD",
+        "syntaxTheme"           : "default",
+        "sort"                  : true,
+        "search"                : false 
+    }
+}
