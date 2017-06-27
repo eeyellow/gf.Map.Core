@@ -520,19 +520,32 @@ function GEEMap(_map) {
     map.setGeoJsonLayer = function(id, dataLayer){
         if(id != undefined){
             dataLayer.setMap(map);
-            this.geojsonLayer[id] = dataLayer;
+            //this.geojsonLayer[id] = dataLayer;
+            this.geojsonLayer[id] = {};
+            this.geojsonLayer[id].data = dataLayer;
         }        
+    };
+    map.labelGeoJsonLayer = function(id, label){
+        if(id != undefined){
+            if(this.geojsonLayer[id].label == undefined){
+                this.geojsonLayer[id].label = [];
+                this.geojsonLayer[id].label.push(label)
+            }        
+            else{
+                this.geojsonLayer[id].label.push(label)
+            }    
+        }         
     };
     map.removeGeoJsonLayer = function(id){
         if(id != undefined){
-            this.geojsonLayer[id].setMap(null);
+            this.geojsonLayer[id].data.setMap(null);
             this.geojsonLayer[id] = null;
             delete this.geojsonLayer[id];
         }
     };
     map.getGeoJsonLayer = function(id){
         if(id != undefined){
-            return this.geojsonLayer[id];
+            return this.geojsonLayer[id].data;
         }
     };
 
