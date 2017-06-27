@@ -519,8 +519,9 @@ function GEEMap(_map) {
 
     map.setGeoJsonLayer = function(id, dataLayer){
         if(id != undefined){
+            dataLayer.setMap(map);
             this.geojsonLayer[id] = dataLayer;
-        }
+        }        
     };
     map.removeGeoJsonLayer = function(id){
         if(id != undefined){
