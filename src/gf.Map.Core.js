@@ -9,6 +9,7 @@ function GEEMap(_map) {
     map.layerIds = [];
     map.kmlLayer = {};
     map.wmsLayer = [];
+    map.geojsonLayer = {};
 
     // from fusion_extended_map.js
     var MAX_ZOOM_LEVEL = 23;
@@ -514,6 +515,23 @@ function GEEMap(_map) {
         var kmlLayer = this.kmlLayer[id];
         kmlLayer.setMap(null);
         this.layerVisible[id] = false;
+    };
+
+    map.setGeoJsonLayer = function(id, dataLayer){
+        if(id != undefined){
+            this.geojsonLayer[id] = dataLayer;
+        }
+    };
+    map.removeGeoJsonLayer = function(id){
+        if(id != undefined){
+            this.geojsonLayer[id] = null;
+            delete this.geojsonLayer[id];
+        }
+    };
+    map.getGeoJsonLayer = function(id){
+        if(id != undefined){
+            return this.geojsonLayer[id];
+        }
     };
 
     map.toggleMapLayer = function (param) {
