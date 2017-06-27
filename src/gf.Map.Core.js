@@ -539,6 +539,9 @@ function GEEMap(_map) {
     map.removeGeoJsonLayer = function(id){
         if(id != undefined){
             this.geojsonLayer[id].data.setMap(null);
+            this.geojsonLayer[id].label.forEach(function(label){
+                label.setMap(null);                
+            });
             this.geojsonLayer[id] = null;
             delete this.geojsonLayer[id];
         }
