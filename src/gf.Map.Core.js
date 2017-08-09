@@ -80,14 +80,25 @@ function GEEMap(_map) {
                 storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
                 map.initializeLayers(geeServerDefs, imgName, geeId);
                 // map type update
-                //updateMapType(map, 'unshift', geeId);
+                updateMapType(map, 'unshift', geeId);
                 // set default type
-                //map.setMapTypeId(geeId);
+                map.setMapTypeId(geeId);
             }
         });
     }
 
+    function updateMapType(map, method, mt_id) {
+        if (!map) return false;
 
+        var maptypes = map.mapTypeControlOptions.mapTypeIds;
+
+        //unshift：放到最前
+        if (method == 'unshift') maptypes.unshift(mt_id);
+        //push：放到最後
+        if (method == 'push') maptypes.push(mt_id);
+
+        map.mapTypeControlOptions.mapTypeIds = maptypes;
+    }
 
     /**
      * Initialize all layers defined in the server defs.
@@ -140,7 +151,7 @@ function GEEMap(_map) {
                         requestType, serverUrl, glmId, channel, version),
                     glmId, channel, enabled);
             }
-            // geeId 
+            // geeId
             this.layerIds[numLayers++] = geeId + '_' + glmId + '-' + channel;
         }
     };
@@ -358,7 +369,7 @@ function GEEMap(_map) {
         this.infoWindow = null;
     };
     /*
-    map.getMapLayers = function (dom_id) {        
+    map.getMapLayers = function (dom_id) {
         for (var i = 0; i < geeServerDefs.layers.length; i++) {
             var layer = geeServerDefs.layers[i];
             var layerId = layer.glm_id ?
@@ -386,13 +397,13 @@ function GEEMap(_map) {
     */
 
     /*
-    map.toggleMapLayer = function (layerId, selected) {            
+    map.toggleMapLayer = function (layerId, selected) {
         if (selected) {
-            if (this.layerMap[layerId]) 
+            if (this.layerMap[layerId])
             {
                 this.layerMap[layerId].overlay.type = 'layer';
             }
-           
+
             try {
                 this.showFusionLayerS(layerId);
 
@@ -401,11 +412,11 @@ function GEEMap(_map) {
             } catch (ex) {
 
             }
-            
-        } 
-        else 
-        { 
-            this.hideFusionLayerS(layerId);            
+
+        }
+        else
+        {
+            this.hideFusionLayerS(layerId);
         }
     }
     */
@@ -429,7 +440,7 @@ function GEEMap(_map) {
                     (bot.lng() + deltaX) + "," +
                     (top.lat() + deltaY);
 
-                //base WMS URL                
+                //base WMS URL
                 var urlarr = wmsurl.split('?');
                 var url = urlarr[0] + '?';
                 var paramarr = urlarr[1].split('&');
@@ -453,25 +464,25 @@ function GEEMap(_map) {
                 });
                 url += "&BGCOLOR=0xFFFFFF";
                 url += "&TRANSPARENT=TRUE";
-                url += "&SRS=EPSG:4326"; //set WGS84 
+                url += "&SRS=EPSG:4326"; //set WGS84
                 url += "&BBOX=" + bbox; // set bounding box
                 url += "&WIDTH=256"; //tile size in google
                 url += "&HEIGHT=256";
                 /*
                 url += "&REQUEST=GetMap"; //WMS operation
                 url += "&SERVICE=WMS";    //WMS service
-                url += "&VERSION=1.1.1";  //WMS version  
+                url += "&VERSION=1.1.1";  //WMS version
                 //url += "&LAYERS=" + "typologie,hm2003"; //WMS layers
                 url += "&LAYERS=" + "swcb:TaipeiCity"; //WMS layers
                 url += "&FORMAT=image/png" ; //WMS format
-                url += "&BGCOLOR=0xFFFFFF";  
+                url += "&BGCOLOR=0xFFFFFF";
                 url += "&TRANSPARENT=TRUE";
-                url += "&SRS=EPSG:4326";     //set WGS84 
+                url += "&SRS=EPSG:4326";     //set WGS84
                 url += "&BBOX=" + bbox;      // set bounding box
                 url += "&WIDTH=256";         //tile size in google
                 url += "&HEIGHT=256";
                 */
-                return url; // return URL for the tile                
+                return url; // return URL for the tile
             },
             tileSize: new google.maps.Size(256, 256),
             isPng: true
@@ -517,48 +528,48 @@ function GEEMap(_map) {
         this.layerVisible[id] = false;
     };
 
-    map.setGeoJsonLayer = function(id, dataLayer){
-        if(id != undefined){
+    map.setGeoJsonLayer = function (id, dataLayer) {
+        if (id != undefined) {
             dataLayer.setMap(map);
             //this.geojsonLayer[id] = dataLayer;
             this.geojsonLayer[id] = {};
             this.geojsonLayer[id].data = dataLayer;
-        }        
+        }
     };
-    map.labelGeoJsonLayer = function(id, label){
-        if(id != undefined){
-            if(this.geojsonLayer[id].label == undefined){
+    map.labelGeoJsonLayer = function (id, label) {
+        if (id != undefined) {
+            if (this.geojsonLayer[id].label == undefined) {
                 this.geojsonLayer[id].label = [];
                 this.geojsonLayer[id].label.push(label)
-            }        
-            else{
+            } else {
                 this.geojsonLayer[id].label.push(label)
-            }    
-        }         
+            }
+        }
     };
-    map.removeGeoJsonLayer = function(id){
-        if(id != undefined){
-            if(this.geojsonLayer[id].data != undefined){
+    map.removeGeoJsonLayer = function (id) {
+        if (id != undefined) {
+            if (this.geojsonLayer[id].data != undefined) {
                 this.geojsonLayer[id].data.setMap(null);
             }
 
-            if(this.geojsonLayer[id].label != undefined){
-                this.geojsonLayer[id].label.forEach(function(label){
-                    label.setMap(null);                
+            if (this.geojsonLayer[id].label != undefined) {
+                this.geojsonLayer[id].label.forEach(function (label) {
+                    label.setMap(null);
                 });
             }
-            
+
             this.geojsonLayer[id] = null;
             delete this.geojsonLayer[id];
         }
     };
-    map.getGeoJsonLayer = function(id){
-        if(id != undefined){
+    map.getGeoJsonLayer = function (id) {
+        if (id != undefined) {
             return this.geojsonLayer[id].data;
         }
     };
 
     map.toggleMapLayer = function (param) {
+
         var lid = param.mapName + "_" + param.glmId + "-" + param.layerid2d;
         switch (param.type) {
             case "wms":
