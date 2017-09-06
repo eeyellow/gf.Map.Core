@@ -1,5 +1,5 @@
 {
-  "name": "gf-map-core",
+  "name": "gf.map.core",
   "version": "1.0.0",
   "main": "gf.Map.Core.js",
   "license": "MIT",
@@ -11,8 +11,8 @@
     "//deploy": "./node_modules/.bin/webpack -p --config webpack.production.config.js --display-error-details",
     "//build": "npm run doc && npm run deploy"
   },
-  "dependencies": {    
-    "jquery": "^3.2.1"    
+  "dependencies": {
+    "jquery": "^3.2.1"
   },
   "devDependencies": {
     "ink-docstrap": "^1.3.0",
