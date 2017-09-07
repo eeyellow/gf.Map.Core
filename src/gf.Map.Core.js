@@ -11,6 +11,14 @@ function GEEMap(_map) {
     map.wmsLayer = [];
     map.geojsonLayer = {};
 
+    var locateMarker = new google.maps.Marker({
+        map: map
+    });
+    var locateInfo = new google.maps.InfoWindow();
+    var locateEvent = locateMarker.addListener('click', function() {
+        locateInfo.open(map, locateMarker);
+    });
+
     // from fusion_extended_map.js
     var MAX_ZOOM_LEVEL = 23;
     var TILE_WIDTH = 256;
@@ -614,5 +622,55 @@ function GEEMap(_map) {
                 }
                 break;
         }
+    };
+
+    /**
+     * 定位功能
+     * @param {object}
+     * param.mode (required) = 'marker' | 'polyline' | 'polygon'
+     * param.geom (required) = { lat: [number] , lng: [number] }
+     * param.title = {string}
+     * param.content = {html string}
+     * param.icon = {url string}
+     * param.callback = {function}
+     */
+    this.locate = function(param) {
+
+        switch(param.mode){
+            case "marker":
+                map.panTo(param.geom);
+
+                locateMarker.setPosition(param.geom);
+
+                if(param.title){
+                    locateMarker.setTitle(param.title);
+                }
+                if(param.icon){
+                    locateMarker.setIcon(param.icon);
+                }
+
+                if(param.content){
+                    locateInfo.setContent(param.content);
+                    locateMarker.setClickable(true);
+                }
+                else{
+                    locateEvent.remove();
+                    locateMarker.setClickable(false);
+                }
+
+                if(param.callback){
+                    param.callback();
+                }
+                break;
+            case "polyline":
+                break;
+            case "polygon":
+                break;
+        }
+    };
+
+    this.locateClear = function(){
+        locateMarker.setMap(null);
+        locateInfo.close();
     };
 }
