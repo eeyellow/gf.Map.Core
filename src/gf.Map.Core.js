@@ -546,28 +546,32 @@ function GEEMap(_map) {
     };
     map.labelGeoJsonLayer = function (id, label) {
         if (id != undefined) {
-            if (this.geojsonLayer[id].label == undefined) {
-                this.geojsonLayer[id].label = [];
-                this.geojsonLayer[id].label.push(label)
-            } else {
-                this.geojsonLayer[id].label.push(label)
+            if(this.geojsonLayer[id] != undefined){
+                if (this.geojsonLayer[id].label == undefined) {
+                    this.geojsonLayer[id].label = [];
+                    this.geojsonLayer[id].label.push(label)
+                } else {
+                    this.geojsonLayer[id].label.push(label)
+                }
             }
         }
     };
     map.removeGeoJsonLayer = function (id) {
         if (id != undefined) {
-            if (this.geojsonLayer[id].data != undefined) {
-                this.geojsonLayer[id].data.setMap(null);
-            }
+            if(this.geojsonLayer[id] != undefined){
+                if (this.geojsonLayer[id].data != undefined) {
+                    this.geojsonLayer[id].data.setMap(null);
+                }
 
-            if (this.geojsonLayer[id].label != undefined) {
-                this.geojsonLayer[id].label.forEach(function (label) {
-                    label.setMap(null);
-                });
-            }
+                if (this.geojsonLayer[id].label != undefined) {
+                    this.geojsonLayer[id].label.forEach(function (label) {
+                        label.setMap(null);
+                    });
+                }
 
-            this.geojsonLayer[id] = null;
-            delete this.geojsonLayer[id];
+                this.geojsonLayer[id] = null;
+                delete this.geojsonLayer[id];
+            }
         }
     };
     map.getGeoJsonLayer = function (id) {
