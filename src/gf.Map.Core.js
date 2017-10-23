@@ -443,8 +443,10 @@ function GEEMap(_map) {
                 var bot = projection.fromPointToLatLng(new google.maps.Point((coord.x + 1) * 256 / zfactor, (coord.y + 1) * 256 / zfactor));
 
                 //corrections for the slight shift of the SLP (mapserver)
-                var deltaX = 0.0013;
-                var deltaY = 0.00058;
+                //var deltaX = 0.0013;
+                //var deltaY = 0.00058;
+                var deltaX = 0;
+                var deltaY = 0;
 
                 var xmin = (top.lng() + deltaX);
                 var ymin = (bot.lat() + deltaY);
