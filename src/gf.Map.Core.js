@@ -431,35 +431,45 @@ function GEEMap(_map) {
     map.addWMSLayer = function (id, wmsurl) {
         var wmsLayer = new google.maps.ImageMapType({
             getTileUrl: function (coord, zoom) {
+                //base WMS URL
+                var urlarr = wmsurl.split('?');
+                var url = urlarr[0] + '?';
+                var paramarr = urlarr[1].split('&');
 
-                var proj = map.getProjection();
+                var projection = map.getProjection();
                 var zfactor = Math.pow(2, zoom);
                 // get Long Lat coordinates
-                var top = proj.fromPointToLatLng(new google.maps.Point(coord.x * 256 / zfactor, coord.y * 256 / zfactor));
-                var bot = proj.fromPointToLatLng(new google.maps.Point((coord.x + 1) * 256 / zfactor, (coord.y + 1) * 256 / zfactor));
+                var top = projection.fromPointToLatLng(new google.maps.Point(coord.x * 256 / zfactor, coord.y * 256 / zfactor));
+                var bot = projection.fromPointToLatLng(new google.maps.Point((coord.x + 1) * 256 / zfactor, (coord.y + 1) * 256 / zfactor));
 
                 //corrections for the slight shift of the SLP (mapserver)
                 var deltaX = 0.0013;
                 var deltaY = 0.00058;
 
-                //create the Bounding box string
-                var bbox = (top.lng() + deltaX) + "," +
-                    (bot.lat() + deltaY) + "," +
-                    (bot.lng() + deltaX) + "," +
-                    (top.lat() + deltaY);
+                var xmin = (top.lng() + deltaX);
+                var ymin = (bot.lat() + deltaY);
+                var xmax = (bot.lng() + deltaX);
+                var ymax = (top.lat() + deltaY);
 
-                //base WMS URL
-                var urlarr = wmsurl.split('?');
-                var url = urlarr[0] + '?';
-                var paramarr = urlarr[1].split('&');
                 paramarr.forEach(function (p) {
                     var kvo = p.split('=');
                     switch (kvo[0].toLowerCase()) {
+                        case "bbox":
+                            break;
                         case "width":
                             break;
                         case "height":
                             break;
                         case "srs":
+                        case "crs":
+                            url += kvo[0] + '=' + kvo[1] + '&';
+
+                            var newMinPoint = proj4('EPSG:4326', kvo[1], {x: xmin * 1, y: ymin * 1});
+                            var newMaxPoint = proj4('EPSG:4326', kvo[1], {x: xmax * 1, y: ymax * 1});
+                            xmin = newMinPoint.x;
+                            ymin = newMinPoint.y;
+                            xmax = newMaxPoint.x;
+                            ymax = newMaxPoint.y;
                             break;
                         case "bgcolor":
                             break;
@@ -470,26 +480,15 @@ function GEEMap(_map) {
                             break;
                     }
                 });
+                //create the Bounding box string
+                var bbox = xmin + "," + ymin + "," + xmax + "," + ymax;
+
                 url += "&BGCOLOR=0xFFFFFF";
                 url += "&TRANSPARENT=TRUE";
-                url += "&SRS=EPSG:4326"; //set WGS84
                 url += "&BBOX=" + bbox; // set bounding box
                 url += "&WIDTH=256"; //tile size in google
                 url += "&HEIGHT=256";
-                /*
-                url += "&REQUEST=GetMap"; //WMS operation
-                url += "&SERVICE=WMS";    //WMS service
-                url += "&VERSION=1.1.1";  //WMS version
-                //url += "&LAYERS=" + "typologie,hm2003"; //WMS layers
-                url += "&LAYERS=" + "swcb:TaipeiCity"; //WMS layers
-                url += "&FORMAT=image/png" ; //WMS format
-                url += "&BGCOLOR=0xFFFFFF";
-                url += "&TRANSPARENT=TRUE";
-                url += "&SRS=EPSG:4326";     //set WGS84
-                url += "&BBOX=" + bbox;      // set bounding box
-                url += "&WIDTH=256";         //tile size in google
-                url += "&HEIGHT=256";
-                */
+
                 return url; // return URL for the tile
             },
             tileSize: new google.maps.Size(256, 256),
