@@ -11,13 +11,8 @@ function GEEMap(_map) {
     map.wmsLayer = [];
     map.geojsonLayer = {};
 
-    var locateMarker = new google.maps.Marker({
-        map: map
-    });
+    var locateMarkers = [];
     var locateInfo = new google.maps.InfoWindow();
-    var locateEvent = locateMarker.addListener('click', function() {
-        locateInfo.open(map, locateMarker);
-    });
 
     // from fusion_extended_map.js
     var MAX_ZOOM_LEVEL = 23;
@@ -431,47 +426,35 @@ function GEEMap(_map) {
     map.addWMSLayer = function (id, wmsurl) {
         var wmsLayer = new google.maps.ImageMapType({
             getTileUrl: function (coord, zoom) {
+
+                var proj = map.getProjection();
+                var zfactor = Math.pow(2, zoom);
+                // get Long Lat coordinates
+                var top = proj.fromPointToLatLng(new google.maps.Point(coord.x * 256 / zfactor, coord.y * 256 / zfactor));
+                var bot = proj.fromPointToLatLng(new google.maps.Point((coord.x + 1) * 256 / zfactor, (coord.y + 1) * 256 / zfactor));
+
+                //corrections for the slight shift of the SLP (mapserver)
+                var deltaX = 0.0013;
+                var deltaY = 0.00058;
+
+                //create the Bounding box string
+                var bbox = (top.lng() + deltaX) + "," +
+                    (bot.lat() + deltaY) + "," +
+                    (bot.lng() + deltaX) + "," +
+                    (top.lat() + deltaY);
+
                 //base WMS URL
                 var urlarr = wmsurl.split('?');
                 var url = urlarr[0] + '?';
                 var paramarr = urlarr[1].split('&');
-
-                var projection = map.getProjection();
-                var zfactor = Math.pow(2, zoom);
-                // get Long Lat coordinates
-                var top = projection.fromPointToLatLng(new google.maps.Point(coord.x * 256 / zfactor, coord.y * 256 / zfactor));
-                var bot = projection.fromPointToLatLng(new google.maps.Point((coord.x + 1) * 256 / zfactor, (coord.y + 1) * 256 / zfactor));
-
-                //corrections for the slight shift of the SLP (mapserver)
-                //var deltaX = 0.0013;
-                //var deltaY = 0.00058;
-                var deltaX = 0;
-                var deltaY = 0;
-
-                var xmin = (top.lng() + deltaX);
-                var ymin = (bot.lat() + deltaY);
-                var xmax = (bot.lng() + deltaX);
-                var ymax = (top.lat() + deltaY);
-
                 paramarr.forEach(function (p) {
                     var kvo = p.split('=');
                     switch (kvo[0].toLowerCase()) {
-                        case "bbox":
-                            break;
                         case "width":
                             break;
                         case "height":
                             break;
                         case "srs":
-                        case "crs":
-                            url += kvo[0] + '=' + kvo[1] + '&';
-
-                            var newMinPoint = proj4('EPSG:4326', kvo[1], {x: xmin * 1, y: ymin * 1});
-                            var newMaxPoint = proj4('EPSG:4326', kvo[1], {x: xmax * 1, y: ymax * 1});
-                            xmin = newMinPoint.x;
-                            ymin = newMinPoint.y;
-                            xmax = newMaxPoint.x;
-                            ymax = newMaxPoint.y;
                             break;
                         case "bgcolor":
                             break;
@@ -482,15 +465,26 @@ function GEEMap(_map) {
                             break;
                     }
                 });
-                //create the Bounding box string
-                var bbox = xmin + "," + ymin + "," + xmax + "," + ymax;
-
                 url += "&BGCOLOR=0xFFFFFF";
                 url += "&TRANSPARENT=TRUE";
+                url += "&SRS=EPSG:4326"; //set WGS84
                 url += "&BBOX=" + bbox; // set bounding box
                 url += "&WIDTH=256"; //tile size in google
                 url += "&HEIGHT=256";
-
+                /*
+                url += "&REQUEST=GetMap"; //WMS operation
+                url += "&SERVICE=WMS";    //WMS service
+                url += "&VERSION=1.1.1";  //WMS version
+                //url += "&LAYERS=" + "typologie,hm2003"; //WMS layers
+                url += "&LAYERS=" + "swcb:TaipeiCity"; //WMS layers
+                url += "&FORMAT=image/png" ; //WMS format
+                url += "&BGCOLOR=0xFFFFFF";
+                url += "&TRANSPARENT=TRUE";
+                url += "&SRS=EPSG:4326";     //set WGS84
+                url += "&BBOX=" + bbox;      // set bounding box
+                url += "&WIDTH=256";         //tile size in google
+                url += "&HEIGHT=256";
+                */
                 return url; // return URL for the tile
             },
             tileSize: new google.maps.Size(256, 256),
@@ -547,42 +541,34 @@ function GEEMap(_map) {
     };
     map.labelGeoJsonLayer = function (id, label) {
         if (id != undefined) {
-            if(this.geojsonLayer[id] != undefined){
-                if (this.geojsonLayer[id].label == undefined) {
-                    this.geojsonLayer[id].label = [];
-                    this.geojsonLayer[id].label.push(label)
-                } else {
-                    this.geojsonLayer[id].label.push(label)
-                }
+            if (this.geojsonLayer[id].label == undefined) {
+                this.geojsonLayer[id].label = [];
+                this.geojsonLayer[id].label.push(label)
+            } else {
+                this.geojsonLayer[id].label.push(label)
             }
         }
     };
     map.removeGeoJsonLayer = function (id) {
         if (id != undefined) {
-            if(this.geojsonLayer[id] != undefined){
-                if (this.geojsonLayer[id].data != undefined) {
-                    this.geojsonLayer[id].data.setMap(null);
-                }
-
-                if (this.geojsonLayer[id].label != undefined) {
-                    this.geojsonLayer[id].label.forEach(function (label) {
-                        label.setMap(null);
-                    });
-                }
-
-                this.geojsonLayer[id] = null;
-                delete this.geojsonLayer[id];
+            if (this.geojsonLayer[id].data != undefined) {
+                this.geojsonLayer[id].data.setMap(null);
             }
+
+            if (this.geojsonLayer[id].label != undefined) {
+                this.geojsonLayer[id].label.forEach(function (label) {
+                    label.setMap(null);
+                });
+            }
+
+            this.geojsonLayer[id] = null;
+            delete this.geojsonLayer[id];
         }
     };
     map.getGeoJsonLayer = function (id) {
         if (id != undefined) {
-            if(this.geojsonLayer[id] != undefined){
-                return this.geojsonLayer[id].data;
-            }
+            return this.geojsonLayer[id].data;
         }
-
-        return undefined;
     };
 
     map.toggleMapLayer = function (param) {
@@ -649,27 +635,38 @@ function GEEMap(_map) {
             case "marker":
                 map.panTo(param.geom);
 
-                locateMarker.setPosition(param.geom);
+                var _locatemarker = new google.maps.Marker({
+                    map: map
+                });
+
+                _locatemarker.setPosition(param.geom);
 
                 if(param.title){
-                    locateMarker.setTitle(param.title);
+                    _locatemarker.setTitle(param.title);
                 }
                 if(param.icon){
-                    locateMarker.setIcon(param.icon);
+                    _locatemarker.setIcon(param.icon);
                 }
 
+                var _locateEvent = _locatemarker.addListener('click', function() {
+                    locateInfo.setContent(this.get("content"));
+                    locateInfo.open(map, _locatemarker);
+                });
+
                 if(param.content){
-                    locateInfo.setContent(param.content);
-                    locateMarker.setClickable(true);
+                    _locatemarker.set("content", param.content);
+                    _locatemarker.setClickable(true);
                 }
                 else{
-                    locateEvent.remove();
-                    locateMarker.setClickable(false);
+                    _locateEvent.remove();
+                    _locatemarker.setClickable(false);
                 }
 
                 if(param.callback){
                     param.callback();
                 }
+
+                locateMarkers.push(_locatemarker);
                 break;
             case "polyline":
                 break;
@@ -679,7 +676,10 @@ function GEEMap(_map) {
     };
 
     this.locateClear = function(){
-        locateMarker.setMap(null);
+        locateMarkers.forEach(function(marker){
+            marker.setMap(null);
+        });
+        locateMarkers = [];
         locateInfo.close();
     };
 }
