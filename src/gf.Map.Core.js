@@ -567,8 +567,12 @@ function GEEMap(_map) {
     };
     map.getGeoJsonLayer = function (id) {
         if (id != undefined) {
-            return this.geojsonLayer[id].data;
+            if(this.geojsonLayer[id] != undefined){
+                return this.geojsonLayer[id].data;
+            }
         }
+
+        return undefined;
     };
 
     map.toggleMapLayer = function (param) {
