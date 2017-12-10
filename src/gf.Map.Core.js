@@ -14,6 +14,27 @@ function GEEMap(_map) {
     var locateMarkers = [];
     var locateInfo = new google.maps.InfoWindow();
 
+    var locateDataLayer = new google.maps.Data({
+        map: map,
+        style: {
+            fillColor: '#FF0000',
+            fillOpacity: 0.33,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.5,
+            strokeWeight: 2
+        }
+    });
+    locateDataLayer.addListener('click', function(e){
+        var content = "<div style='padding: 10px;'>";
+        e.feature.forEachProperty(function(value){
+            content += "<p>" + value + "</p>";
+        });
+        content += "</div>";
+        locateInfo.setContent(content);
+        locateInfo.setPosition(e.latLng);
+        locateInfo.open(map);
+    });
+
     // from fusion_extended_map.js
     var MAX_ZOOM_LEVEL = 23;
     var TILE_WIDTH = 256;
@@ -636,7 +657,10 @@ function GEEMap(_map) {
      * param.callback = {function}
      */
     this.locate = function(param) {
-
+        // 2017-12-10 Ray
+        // 目前marker模式是使用google.maps.Marker
+        // polygon模式是使用google.maps.Data
+        // 之後請花時間把marker模式也改成DataLayer
         switch(param.mode){
             case "marker":
                 map.panTo(param.geom);
@@ -677,6 +701,14 @@ function GEEMap(_map) {
             case "polyline":
                 break;
             case "polygon":
+                var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
+                param.geom.id = id;
+                locateDataLayer.addGeoJson(param.geom);
+                var bounds = new google.maps.LatLngBounds();
+                locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function(latlng){
+                    bounds.extend(latlng);
+                });
+                map.fitBounds(bounds);
                 break;
         }
     };
@@ -687,5 +719,9 @@ function GEEMap(_map) {
         });
         locateMarkers = [];
         locateInfo.close();
+
+        locateDataLayer.forEach(function(feature) {
+            locateDataLayer.remove(feature);
+        });
     };
 }
