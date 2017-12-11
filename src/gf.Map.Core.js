@@ -41,7 +41,7 @@ function GEEMap(_map) {
     var TILE_HEIGHT = 256;
 
     /* constructor */
-    this.geeFusionLayer = function (index, overlay) {
+    map.geeFusionLayer = function (index, overlay) {
         this.index = index;
         this.overlay = overlay;
     }
@@ -90,7 +90,7 @@ function GEEMap(_map) {
     }
 
     //this.addGEE = function(domId, imgName, geeId, url) {
-    this.addGEE = function (imgName, geeId, url, storage) {
+    map.addGEE = function (imgName, geeId, url, storage) {
         // ajax jsonp get geeServerDefs
         var d = new Date().getTime(); //console.time(d);
         $.ajax({
@@ -216,7 +216,7 @@ function GEEMap(_map) {
         }
         // geeId
         var id = this.geeId + '_' + glmId + '-' + channel;
-        this.layerMap[id] = new o.geeFusionLayer(index, overlay);
+        this.layerMap[id] = new map.geeFusionLayer(index, overlay);
         this.layerVisible[id] = enabled;
         this.layerName[id] = name;
         this.options[id] = options;
@@ -658,7 +658,7 @@ function GEEMap(_map) {
      * param.icon = {url string}
      * param.callback = {function}
      */
-    this.locate = function(param) {
+    map.locate = function(param) {
         // 2017-12-10 Ray
         // 目前marker模式是使用google.maps.Marker
         // polygon模式是使用google.maps.Data
@@ -715,7 +715,7 @@ function GEEMap(_map) {
         }
     };
 
-    this.locateClear = function(){
+    map.locateClear = function(){
         locateMarkers.forEach(function(marker){
             marker.setMap(null);
         });
