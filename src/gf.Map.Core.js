@@ -102,7 +102,9 @@ function GEEMap(_map) {
             complete: function () { //console.timeEnd(d);
                 // var geeServerDefs = {...} from jsonp;
                 storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
-                map.initializeLayers(geeServerDefs, imgName, geeId);
+                geeServerDefs = null;
+                delete geeServerDefs;
+                map.initializeLayers(storage[geeId], imgName, geeId);
                 // map type update
                 updateMapType(map, 'unshift', geeId);
                 // set default type
