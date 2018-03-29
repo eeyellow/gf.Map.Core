@@ -646,6 +646,10 @@ function GEEMap(_map) {
                 }
                 break;
         }
+
+        if(param.opacity != undefined) {            
+            this.setOpacity(lid, param.opacity);
+        }
     };
 
     /**
