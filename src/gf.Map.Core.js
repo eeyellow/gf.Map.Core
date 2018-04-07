@@ -1,3 +1,8 @@
+/**
+ * @class
+ * @classdesc
+ * @param _map {Object} GoogleMap實例
+ */
 function GEEMap(_map) {
     var o = this;
     var map = _map;
@@ -103,7 +108,7 @@ function GEEMap(_map) {
                 // var geeServerDefs = {...} from jsonp;
                 storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
                 geeServerDefs = null;
-                delete geeServerDefs;
+                //delete geeServerDefs;
                 map.initializeLayers(storage[geeId], imgName, geeId);
                 // map type update
                 updateMapType(map, 'unshift', geeId);
@@ -394,58 +399,14 @@ function GEEMap(_map) {
         this.infoWindow.close();
         this.infoWindow = null;
     };
-    /*
-    map.getMapLayers = function (dom_id) {
-        for (var i = 0; i < geeServerDefs.layers.length; i++) {
-            var layer = geeServerDefs.layers[i];
-            var layerId = layer.glm_id ?
-                layer.glm_id + '-' + layer.id : '0-' + layer.id;
-            // geeId
-            layerId = this.geeId + '_' + layerId;
 
-            var div = document.getElementById(dom_id);
-            if (!div) return false;
-
-            // var checked = layer.initialState ? ' checked' : '';
-            var checked = layer.initialState ? '' : '';
-            // var disabled = layer.label == 'Imagery' ? ' disabled' : '';
-            var disabled = layer.label == 'Imagery' ? '' : '';
-
-            if (layer.label == 'Imagery') layer.label = this.imgName;
-
-            div.innerHTML +=
-                '<li><label><input type="checkbox"' +
-                'onclick="toggleMapLayer(\'' + layerId + '\')"' +
-                'id="' + layerId + '" ' +
-                checked + disabled + '/>' + layer.label + '</label></li>';
-        }
-    };
-    */
-
-    /*
-    map.toggleMapLayer = function (layerId, selected) {
-        if (selected) {
-            if (this.layerMap[layerId])
-            {
-                this.layerMap[layerId].overlay.type = 'layer';
-            }
-
-            try {
-                this.showFusionLayerS(layerId);
-
-                var mt = this.layerMap[layerId].overlay;
-                Overlayopacity(mt);
-            } catch (ex) {
-
-            }
-
-        }
-        else
-        {
-            this.hideFusionLayerS(layerId);
-        }
-    }
-    */
+    /**
+     * @func addWMSLayer
+     * @desc 加入WMS圖層
+     * @memberOf GEEMap
+     * @param {string} id  圖層ID
+     * @param {string} wmsurl WMS網址
+     */
     map.addWMSLayer = function (id, wmsurl) {
         var wmsLayer = new google.maps.ImageMapType({
             getTileUrl: function (coord, zoom) {
@@ -523,6 +484,13 @@ function GEEMap(_map) {
 
         this.layerVisible[id] = true;
     };
+
+    /**
+     * @func removeWMSLayer
+     * @desc 移除WMS圖層
+     * @memberOf GEEMap
+     * @param {string} id  圖層ID
+     */
     map.removeWMSLayer = function (id) {
         this.wmsLayer.forEach(function (ele, idx) {
             if (ele == id) {
@@ -538,6 +506,13 @@ function GEEMap(_map) {
         this.layerVisible[id] = false;
     };
 
+    /**
+     * @func addKMLLayer
+     * @desc 加入KML圖層
+     * @memberOf GEEMap
+     * @param {string} id  圖層ID
+     * @param {string} kmlurl KML網址
+     */
     map.addKMLLayer = function (id, kmlurl) {
         var kmlOptions = {
             preserveViewport: true,
@@ -548,11 +523,19 @@ function GEEMap(_map) {
         this.kmlLayer[id] = kmlLayer;
         this.layerVisible[id] = true;
     };
+
+    /**
+     * @func removeKMLLayer
+     * @desc 移除KML圖層
+     * @memberOf GEEMap
+     * @param {string} id  圖層ID
+     */
     map.removeKMLLayer = function (id) {
         var kmlLayer = this.kmlLayer[id];
         kmlLayer.setMap(null);
         this.layerVisible[id] = false;
     };
+
 
     map.setGeoJsonLayer = function (id, dataLayer) {
         if (id != undefined) {
@@ -603,6 +586,12 @@ function GEEMap(_map) {
     map.toggleMapLayer = function (param) {
 
         var lid = param.mapName + "_" + param.glmId + "-" + param.layerid2d;
+
+        if(param.opacity != undefined) {
+            this.setOpacity(lid, param.opacity);
+            return;
+        }
+
         switch (param.type) {
             case "wms":
                 switch (param.selected) {
@@ -646,16 +635,13 @@ function GEEMap(_map) {
                 }
                 break;
         }
-
-        if(param.opacity != undefined) {            
-            this.setOpacity(lid, param.opacity);
-        }
     };
 
     /**
-     * 定位功能
-     * @param {object}
-     * param.mode (required) = 'marker' | 'polyline' | 'polygon'
+     * @func locate
+     * @desc 定位
+     * @memberOf GEEMap
+     * @param.mode (required) = 'marker' | 'polyline' | 'polygon'
      * param.geom (required) = { lat: [number] , lng: [number] }
      * param.title = {string}
      * param.content = {html string}
