@@ -691,6 +691,14 @@ function GEEMap(_map) {
                 locateMarkers.push(_locatemarker);
                 break;
             case "polyline":
+                var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
+                param.geom.id = id;
+                locateDataLayer.addGeoJson(param.geom);
+                var bounds = new google.maps.LatLngBounds();
+                locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function(latlng){
+                    bounds.extend(latlng);
+                });
+                map.fitBounds(bounds);
                 break;
             case "polygon":
                 var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
