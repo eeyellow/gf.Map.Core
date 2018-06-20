@@ -672,18 +672,24 @@ function GEEMap(_map) {
                     _locatemarker.setIcon(param.icon);
                 }
 
-                var _locateEvent = _locatemarker.addListener('click', function() {
-                    locateInfo.setContent(this.get("content"));
-                    locateInfo.open(map, _locatemarker);
-                });
-
-                if(param.content){
-                    _locatemarker.set("content", param.content);
+                var _locateEvent;
+                if (param.click != undefined) {
+                    _locateEvent = _locatemarker.addListener('click', param.click);
                     _locatemarker.setClickable(true);
                 }
-                else{
-                    _locateEvent.remove();
-                    _locatemarker.setClickable(false);
+                else {
+                    if (param.content) {
+                        _locateEvent = _locatemarker.addListener('click', function() {
+                            locateInfo.setContent(this.get("content"));
+                            locateInfo.open(map, _locatemarker);
+                        });
+                        _locatemarker.set("content", param.content);
+                        _locatemarker.setClickable(true);
+                    }
+                    else {
+                        _locateEvent.remove();
+                        _locatemarker.setClickable(false);
+                    }
                 }
 
                 if(param.callback){
