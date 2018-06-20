@@ -655,7 +655,9 @@ function GEEMap(_map) {
         // 之後請花時間把marker模式也改成DataLayer
         switch(param.mode){
             case "marker":
-                map.panTo(param.geom);
+                if (param.notPanTo != true) {
+                    map.panTo(param.geom);
+                }
 
                 var _locatemarker = new google.maps.Marker({
                     map: map
@@ -694,21 +696,27 @@ function GEEMap(_map) {
                 var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
                 param.geom.id = id;
                 locateDataLayer.addGeoJson(param.geom);
-                var bounds = new google.maps.LatLngBounds();
-                locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function(latlng){
-                    bounds.extend(latlng);
-                });
-                map.fitBounds(bounds);
+
+                if (param.notPanTo != true) {
+                    var bounds = new google.maps.LatLngBounds();
+                    locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function (latlng) {
+                        bounds.extend(latlng);
+                    });
+                    map.fitBounds(bounds);
+                }
                 break;
             case "polygon":
                 var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
                 param.geom.id = id;
                 locateDataLayer.addGeoJson(param.geom);
-                var bounds = new google.maps.LatLngBounds();
-                locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function(latlng){
-                    bounds.extend(latlng);
-                });
-                map.fitBounds(bounds);
+
+                if (param.notPanTo != true) {
+                    var bounds = new google.maps.LatLngBounds();
+                    locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function (latlng) {
+                        bounds.extend(latlng);
+                    });
+                    map.fitBounds(bounds);
+                }
                 break;
         }
     };
