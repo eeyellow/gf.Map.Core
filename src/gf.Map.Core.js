@@ -497,8 +497,8 @@ function GEEMap(_map) {
                 var i = map.layerIds.length + idx;
                 var o = map.overlayMapTypes.getAt(i);
                 if (o && o.id == id) {
-                    //map.overlayMapTypes.removeAt(i);
-                    map.overlayMapTypes.setAt(i, null);
+                    map.overlayMapTypes.removeAt(i);
+                    //map.overlayMapTypes.setAt(i, null);
                 }
             }
         });
