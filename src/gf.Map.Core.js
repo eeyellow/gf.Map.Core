@@ -503,6 +503,9 @@ function GEEMap(_map) {
             }
         });
 
+        var idx = this.wmsLayer.indexOf(id);
+        this.wmsLayer.splice(idx, 1);
+
         this.layerVisible[id] = false;
     };
 
