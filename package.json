@@ -1,6 +1,6 @@
 {
   "name": "gf.map.core",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "main": "gf.Map.Core.js",
   "license": "MIT",
   "scripts": {
@@ -12,7 +12,6 @@
     "//build": "npm run doc && npm run deploy"
   },
   "dependencies": {
-    "jquery": "^3.2.1",
     "proj4": "latest"
   },
   "devDependencies": {

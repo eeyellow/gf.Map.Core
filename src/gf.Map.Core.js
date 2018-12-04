@@ -98,14 +98,17 @@ function GEEMap(_map) {
     map.addGEE = function (imgName, geeId, url, storage) {
         // ajax jsonp get geeServerDefs
         var d = new Date().getTime(); //console.time(d);
-        $.ajax({
-            type: 'GET',
-            dataType: 'jsonp',
-            url: url + '/query?request=Json&var=geeServerDefs&timestamp=' + d,
-            crossDomain: true,
-            async: true,
-            complete: function () { //console.timeEnd(d);
+
+        fetch(url + '/query?request=Json&var=geeServerDefs&timestamp=' + d)
+            .then(function (response) {
+                if (response.ok) {
+                    return response.text();
+                }
+                throw new Error('Network response was not ok.');
+            }).then(function (data) {
                 // var geeServerDefs = {...} from jsonp;
+                eval(data);
+
                 storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
                 geeServerDefs = null;
                 //delete geeServerDefs;
@@ -114,8 +117,28 @@ function GEEMap(_map) {
                 updateMapType(map, 'unshift', geeId);
                 // set default type
                 map.setMapTypeId(geeId);
-            }
-        });
+            }).catch(function (error) {
+                console.log('There has been a problem with your fetch operation: ', error.message);
+            });
+
+        // $.ajax({
+        //     type: 'GET',
+        //     dataType: 'jsonp',
+        //     url: url + '/query?request=Json&var=geeServerDefs&timestamp=' + d,
+        //     crossDomain: true,
+        //     async: true,
+        //     complete: function () { //console.timeEnd(d);
+        //         // var geeServerDefs = {...} from jsonp;
+        //         storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
+        //         geeServerDefs = null;
+        //         //delete geeServerDefs;
+        //         map.initializeLayers(storage[geeId], imgName, geeId);
+        //         // map type update
+        //         updateMapType(map, 'unshift', geeId);
+        //         // set default type
+        //         map.setMapTypeId(geeId);
+        //     }
+        // });
     }
 
     function updateMapType(map, method, mt_id) {
@@ -144,9 +167,6 @@ function GEEMap(_map) {
 
         var layerDefs = serverDefs.layers;
         var serverUrl = serverDefs.serverUrl;
-
-        // domain error special case:
-        serverUrl = serverUrl.replace('http://earth.3dmap.hinet.net', 'http://117.56.7.99');
 
         if (layerDefs == undefined || layerDefs.length == 0) {
             alert('Error: No Layers are defined for this URL.');
@@ -751,5 +771,128 @@ function GEEMap(_map) {
         if (!results) return null;
         if (!results[2]) return '';
         return decodeURIComponent(results[2].replace(/\+/g, ' '));
-    }
+    };
+
+    map.listSPOT = function () {
+        var objSPOT = function (location, year, type) {
+            var self = this;
+            self.location = location;
+            self.year = year;
+            self.type = type;
+            this.getCode = function () {
+                return "SP" + year + self.typeCode() + "_" + locationCode() + "3857";
+            }
+            function locationCode() {
+                if (self.location == "臺灣") {
+                    return "";
+                }
+                else {
+                    return "PH_";
+                }
+            }
+            self.typeCode = function(){
+                if (self.type == "自然色") {
+                    return "NC";
+                }
+                else {
+                    return "FC";
+                }
+            }
+        }
+
+        var yearStart = 1996;
+        var yearEnd = 2017;
+        var types = ["自然色", "假色"];
+        //var locations = ["臺灣", "澎湖"];
+        var locations = ["臺灣"];
+
+        var list = [];
+
+        for (var i = yearStart; i <= yearEnd; i++){
+            locations.forEach(function (location) {
+                types.forEach(function (type) {
+                    list.push(new objSPOT(location, i, type));
+                });
+            });
+        }
+
+        return list;
+    };
+
+    /**
+     * @param {boolean} toggle 開啟(true)或關閉(false)
+     * @param {number} opacity 透明度(0~1)
+     * @param {number} year 西元年度
+     * @param {string} type 影像類型，自然色(NC)，假色(FC)
+     */
+    map.toggleSPOT = function (toggle, opacity, year, type) {
+        if (toggle == true) {
+            map.overlayMapTypes.getArray()
+                .filter(function (ele) {
+                    return ele != undefined
+                        && ele.name
+                        && ele.name.substring(0, 4) == "SPOT";
+                })
+                .forEach(function (ele) {
+                    ele.setOpacity(0);
+                });
+
+            var idx = map.overlayMapTypes.getArray()
+                .findIndex(function (ele) {
+                    return ele != undefined && ele.name == 'SPOT' + year + type;
+                });
+            if (idx > -1) {
+                var overlay = map.overlayMapTypes.getAt(idx);
+                if (opacity != undefined) {
+                    overlay.setOpacity(opacity);
+                }
+                else {
+                    overlay.setOpacity(overlay.savedOpacity);
+                }
+            }
+            else {
+                var mapMinZoom = 6;
+                var mapMaxZoom = 18;
+                var mapBounds = new google.maps.LatLngBounds(
+                    new google.maps.LatLng(21.81785406, 119.86499422),
+                    new google.maps.LatLng(25.4334898, 122.05204106)
+                );
+                var entry;
+                if (type == "NC") {
+                    entry = "SP";
+                }
+                if (type == "FC") {
+                    entry = "SP_TW_FC";
+                }
+                var overlay = new klokantech.MapTilerMapType(map, function (x, y, z) {
+                    return "http://140.115.110.11/" + entry + "/SP" + year + type + "_3857/{z}/{x}/{y}.png".replace('{z}', z).replace('{x}', x).replace('{y}', y);
+                },
+                    mapBounds, mapMinZoom, mapMaxZoom
+                );
+                overlay.savedOpacity = 1;
+                if (opacity != undefined) {
+                    overlay.setOpacity(opacity);
+                }
+                else {
+                    overlay.setOpacity(1);
+                }
+
+                overlay.name = 'SPOT' + year + type;
+            }
+        }
+        else {
+            var idx = map.overlayMapTypes.getArray()
+                .findIndex(function (ele) {
+                    return ele != undefined && ele.name == 'SPOT' + year + type;
+                });
+            if (idx > -1) {
+                var overlay = map.overlayMapTypes.getAt(idx);
+                overlay.savedOpacity = overlay.opacity;
+                overlay.setOpacity(0);
+            }
+            else {
+                console.log("目標overlay不存在");
+            }
+        }
+    };
 }
