@@ -39,6 +39,7 @@ function GEEMap(_map) {
         locateInfo.setPosition(e.latLng);
         locateInfo.open(map);
     });
+    var locateDataPool = [];
 
     // from fusion_extended_map.js
     var MAX_ZOOM_LEVEL = 23;
@@ -740,6 +741,8 @@ function GEEMap(_map) {
                 param.geom.id = id;
                 locateDataLayer.addGeoJson(param.geom);
 
+                locateDataPool.push(param.geom);
+
                 if (param.notPanTo != true) {
                     var bounds = new google.maps.LatLngBounds();
                     locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function (latlng) {
@@ -750,6 +753,16 @@ function GEEMap(_map) {
                 break;
         }
     };
+    map.getLocateGeoJson = function () {
+        var featureCollection = {
+            "type": "FeatureCollection",
+            "features": []
+        };
+        locateDataPool.forEach(function (feature) {
+            featureCollection.features.push(feature);
+        });
+        return featureCollection;
+    }
 
     map.locateClear = function(){
         locateMarkers.forEach(function(marker){
@@ -761,6 +774,8 @@ function GEEMap(_map) {
         locateDataLayer.forEach(function(feature) {
             locateDataLayer.remove(feature);
         });
+
+        locateDataPool = [];
     };
 
     function getParameterByName(name, url) {
