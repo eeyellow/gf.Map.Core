@@ -678,50 +678,25 @@ function GEEMap(_map) {
         // 目前marker模式是使用google.maps.Marker
         // polygon模式是使用google.maps.Data
         // 之後請花時間把marker模式也改成DataLayer
+
+        // 2019-01-23 Ray
+        // 已全部改為DataLayer，mode參數應該可以廢掉
+        // 但並不向前相容google.maps.Marker
         switch(param.mode){
             case "marker":
+                var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
+                param.geom.id = id;
+                locateDataLayer.addGeoJson(param.geom);
+
                 if (param.notPanTo != true) {
-                    map.panTo(param.geom);
+                    var bounds = new google.maps.LatLngBounds();
+                    locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function (latlng) {
+                        bounds.extend(latlng);
+                    });
+                    map.fitBounds(bounds);
                 }
 
-                var _locatemarker = new google.maps.Marker({
-                    map: map
-                });
-
-                _locatemarker.setPosition(param.geom);
-
-                if(param.title){
-                    _locatemarker.setTitle(param.title);
-                }
-                if(param.icon){
-                    _locatemarker.setIcon(param.icon);
-                }
-
-                var _locateEvent;
-                if (param.click != undefined) {
-                    _locateEvent = _locatemarker.addListener('click', param.click);
-                    _locatemarker.setClickable(true);
-                }
-                else {
-                    if (param.content) {
-                        _locateEvent = _locatemarker.addListener('click', function() {
-                            locateInfo.setContent(this.get("content"));
-                            locateInfo.open(map, _locatemarker);
-                        });
-                        _locatemarker.set("content", param.content);
-                        _locatemarker.setClickable(true);
-                    }
-                    else {
-                        _locateEvent.remove();
-                        _locatemarker.setClickable(false);
-                    }
-                }
-
-                if(param.callback){
-                    param.callback();
-                }
-
-                locateMarkers.push(_locatemarker);
+                map.setZoom(15);
                 break;
             case "polyline":
                 var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
