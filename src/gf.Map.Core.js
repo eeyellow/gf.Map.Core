@@ -97,30 +97,103 @@ function GEEMap(_map) {
 
     //this.addGEE = function(domId, imgName, geeId, url) {
     map.addGEE = function (imgName, geeId, url, storage) {
-        // ajax jsonp get geeServerDefs
-        var d = new Date().getTime(); //console.time(d);
+        var DEFAULT_INTERVAL = 50;
+        var DEFAULT_TIMEOUT = 5000;
+        /**
+         * Waits for predicate to be truthy and resolves a Promise
+         * https://github.com/devlato/waitUntil
+         *
+         * @param  predicate  Function  Predicate that checks the condition
+         * @param  timeout  Number  Maximum wait interval, 5000ms by default
+         * @param  interval  Number  Wait interval, 50ms by default
+         * @return  Promise  Promise to return a callback result
+         */
+        function waitUntil(
+            predicate,
+            timeout,
+            interval
+        ) {
+            var timerInterval = interval || DEFAULT_INTERVAL;
+            var timerTimeout = timeout || DEFAULT_TIMEOUT;
 
-        fetch(url + '/query?request=Json&var=geeServerDefs&timestamp=' + d)
-            .then(function (response) {
-                if (response.ok) {
-                    return response.text();
-                }
-                throw new Error('Network response was not ok.');
-            }).then(function (data) {
-                // var geeServerDefs = {...} from jsonp;
-                eval(data);
+            return new Promise(function promiseCallback(resolve, reject) {
+                var timer;
+                var timeoutTimer;
+                var clearTimers;
+                var doStep;
 
-                storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
-                geeServerDefs = null;
-                //delete geeServerDefs;
-                map.initializeLayers(storage[geeId], imgName, geeId);
-                // map type update
-                updateMapType(map, 'unshift', geeId);
-                // set default type
-                map.setMapTypeId(geeId);
-            }).catch(function (error) {
-                console.log('There has been a problem with your fetch operation: ', error.message);
+                clearTimers = function clearWaitTimers() {
+                    clearTimeout(timeoutTimer);
+                    clearInterval(timer);
+                };
+
+                doStep = function doTimerStep() {
+                    var result;
+
+                    try {
+                        result = predicate();
+
+                        if (result) {
+                            clearTimers();
+                            resolve(result);
+                        } else {
+                            timer = setTimeout(doStep, timerInterval);
+                        }
+                    } catch (e) {
+                        clearTimers();
+                        reject(e);
+                    }
+                };
+
+                timer = setTimeout(doStep, timerInterval);
+                timeoutTimer = setTimeout(function onTimeout() {
+                    clearTimers();
+                    reject(new Error('Timed out after waiting for ' + timerTimeout + 'ms'));
+                }, timerTimeout);
             });
+        };
+
+        var script = document.createElement('script');
+        script.src = url + '/query?request=Json&var=geeServerDefs&timestamp=' + new Date().getTime();
+        document.getElementsByTagName('head')[0].appendChild(script);
+
+        waitUntil(function () {
+            return !(typeof geeServerDefs === 'undefined');
+        }).then(function (result) {
+            storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
+            geeServerDefs = null;
+            //delete geeServerDefs;
+            map.initializeLayers(storage[geeId], imgName, geeId);
+            // map type update
+            updateMapType(map, 'unshift', geeId);
+            // set default type
+            map.setMapTypeId(geeId);
+        }).catch(function (error) {
+            console.log(error);
+        })
+
+
+        // fetch(url + '/query?request=Json&var=geeServerDefs&timestamp=' + d)
+        //     .then(function (response) {
+        //         if (response.ok) {
+        //             return response.text();
+        //         }
+        //         throw new Error('Network response was not ok.');
+        //     }).then(function (data) {
+        //         // var geeServerDefs = {...} from jsonp;
+        //         eval(data);
+
+        //         storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
+        //         geeServerDefs = null;
+        //         //delete geeServerDefs;
+        //         map.initializeLayers(storage[geeId], imgName, geeId);
+        //         // map type update
+        //         updateMapType(map, 'unshift', geeId);
+        //         // set default type
+        //         map.setMapTypeId(geeId);
+        //     }).catch(function (error) {
+        //         console.log('There has been a problem with your fetch operation: ', error.message);
+        //     });
 
         // $.ajax({
         //     type: 'GET',
