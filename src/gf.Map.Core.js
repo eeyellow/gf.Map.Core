@@ -152,18 +152,23 @@ function GEEMap(_map) {
                 }, timerTimeout);
             });
         };
+        var d = new Date().getTime();
+        var defKey = "geeServerDefs" + `${ d }`;
 
         var script = document.createElement('script');
-        script.src = url + '/query?request=Json&var=geeServerDefs&timestamp=' + new Date().getTime();
+        script.src = url + '/query?request=Json&var=' + defKey + '&timestamp=' + d;
         document.getElementsByTagName('head')[0].appendChild(script);
 
         waitUntil(function () {
-            return !(typeof geeServerDefs === 'undefined');
-        }).then(function (result) {
-            storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
-            geeServerDefs = null;
-            //delete geeServerDefs;
-            map.initializeLayers(storage[geeId], imgName, geeId);
+            try {
+                eval(defKey);
+            } catch (e) {
+                return false
+            }
+            return !(typeof eval(defKey) === 'undefined' || eval(defKey) === null);
+        }, 10000).then(function (result) {
+            storage[geeId + d] = JSON.parse(JSON.stringify(eval(defKey)));
+            map.initializeLayers(storage[geeId + d], imgName, geeId);
             // map type update
             updateMapType(map, 'unshift', geeId);
             // set default type
@@ -171,48 +176,6 @@ function GEEMap(_map) {
         }).catch(function (error) {
             console.log(error);
         })
-
-
-        // fetch(url + '/query?request=Json&var=geeServerDefs&timestamp=' + d)
-        //     .then(function (response) {
-        //         if (response.ok) {
-        //             return response.text();
-        //         }
-        //         throw new Error('Network response was not ok.');
-        //     }).then(function (data) {
-        //         // var geeServerDefs = {...} from jsonp;
-        //         eval(data);
-
-        //         storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
-        //         geeServerDefs = null;
-        //         //delete geeServerDefs;
-        //         map.initializeLayers(storage[geeId], imgName, geeId);
-        //         // map type update
-        //         updateMapType(map, 'unshift', geeId);
-        //         // set default type
-        //         map.setMapTypeId(geeId);
-        //     }).catch(function (error) {
-        //         console.log('There has been a problem with your fetch operation: ', error.message);
-        //     });
-
-        // $.ajax({
-        //     type: 'GET',
-        //     dataType: 'jsonp',
-        //     url: url + '/query?request=Json&var=geeServerDefs&timestamp=' + d,
-        //     crossDomain: true,
-        //     async: true,
-        //     complete: function () { //console.timeEnd(d);
-        //         // var geeServerDefs = {...} from jsonp;
-        //         storage[geeId] = JSON.parse(JSON.stringify(geeServerDefs));
-        //         geeServerDefs = null;
-        //         //delete geeServerDefs;
-        //         map.initializeLayers(storage[geeId], imgName, geeId);
-        //         // map type update
-        //         updateMapType(map, 'unshift', geeId);
-        //         // set default type
-        //         map.setMapTypeId(geeId);
-        //     }
-        // });
     }
 
     function updateMapType(map, method, mt_id) {
