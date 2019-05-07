@@ -731,8 +731,9 @@ function GEEMap(_map) {
                     });
                     map.fitBounds(bounds);
                 }
-
-                map.setZoom(15);
+                if (param.notZoomTo != true) {
+                    map.setZoom(15);
+                }
                 break;
             case "polyline":
                 var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
