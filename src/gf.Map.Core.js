@@ -734,6 +734,12 @@ function GEEMap(_map) {
                 if (param.notZoomTo != true) {
                     map.setZoom(15);
                 }
+
+                if (param.icon) {
+                    locateDataLayer.setStyle({
+                        icon: param.icon
+                    });
+                }
                 break;
             case "polyline":
                 var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;

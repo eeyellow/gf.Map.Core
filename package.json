@@ -1,6 +1,6 @@
 {
   "name": "gf.map.core",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "main": "gf.Map.Core.js",
   "license": "MIT",
   "scripts": {
