@@ -20,14 +20,21 @@ function GEEMap(_map) {
     var locateInfo = new google.maps.InfoWindow();
 
     var locateDataLayer = new google.maps.Data({
-        map: map,
-        style: {
+        map: map
+    });
+    locateDataLayer.setStyle(function (feature) {
+        var defaultStyle = {
             fillColor: '#FF0000',
             fillOpacity: 0.33,
             strokeColor: '#FF0000',
             strokeOpacity: 0.5,
             strokeWeight: 2
         }
+        if (feature.getProperty('icon') != undefined) {
+            defaultStyle.icon = feature.getProperty('icon');
+        }
+
+        return (defaultStyle);
     });
     locateDataLayer.addListener('click', function(e){
         var content = "<div style='padding: 10px;'>";
@@ -718,6 +725,10 @@ function GEEMap(_map) {
         // 2019-01-23 Ray
         // 已全部改為DataLayer，mode參數應該可以廢掉
         // 但並不向前相容google.maps.Marker
+
+        // 2019-05-08 Ray
+        // marker模式支援傳入icon參數
+        // polyline與polygon尚未支援style參數
         switch(param.mode){
             case "marker":
                 var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
@@ -735,11 +746,7 @@ function GEEMap(_map) {
                     map.setZoom(15);
                 }
 
-                if (param.icon) {
-                    locateDataLayer.setStyle({
-                        icon: param.icon
-                    });
-                }
+
                 break;
             case "polyline":
                 var id = (param.geom.id == undefined) ? Date.now() : param.geom.id;
