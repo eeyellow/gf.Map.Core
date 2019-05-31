@@ -17,7 +17,7 @@ mapInstance = new google.maps.Map(document.getElementById('map'), {
 var geemap = new GEEMap(mapInstance);
 
 /* 3: Link GEE 2D Map Resource */
-geemap.addGEE(imageryName, mapName, geeResourceUrl, mapDef);
+mapInstance.addGEE(imageryName, mapName, geeResourceUrl, mapDef);
 ```
 
 Settings Example
