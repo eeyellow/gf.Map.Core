@@ -777,24 +777,26 @@ function GEEMap(_map) {
                 }
                 break;
             default: //FeatureCollection
-                var bounds = new google.maps.LatLngBounds();
-                param.geom.features.forEach(function (e) {
-                    var id = (e.id == undefined) ? Date.now() : e.id;
-                    e.id = id;
-                    locateDataLayer.addGeoJson(e);
+                if (param.geom != undefined) {
+                    var bounds = new google.maps.LatLngBounds();
+                    param.geom.features.forEach(function (e) {
+                        var id = (e.id == undefined) ? Date.now() : e.id;
+                        e.id = id;
+                        locateDataLayer.addGeoJson(e);
+
+                        if (param.notPanTo != true) {
+                            locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function (latlng) {
+                                bounds.extend(latlng);
+                            });
+                        }
+                    })
 
                     if (param.notPanTo != true) {
-                        locateDataLayer.getFeatureById(id).getGeometry().forEachLatLng(function (latlng) {
-                            bounds.extend(latlng);
-                        });
+                        map.fitBounds(bounds);
                     }
-                })
-
-                if (param.notPanTo != true) {
-                    map.fitBounds(bounds);
-                }
-                if (param.notZoomTo != true) {
-                    map.setZoom(15);
+                    if (param.notZoomTo != true) {
+                        map.setZoom(15);
+                    }
                 }
                 break;
         }
