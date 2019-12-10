@@ -168,8 +168,7 @@ function GEEMap(_map) {
       map.initializeLayers(storage[geeId + d], imgName, geeId); // map type update
 
       updateMapType(map, 'unshift', geeId); // set default type
-
-      map.setMapTypeId(geeId);
+      // map.setMapTypeId(geeId);
     })["catch"](function (error) {
       console.log(error);
     });
@@ -654,7 +653,13 @@ function GEEMap(_map) {
   };
 
   map.toggleMapLayer = function (param) {
-    var lid = param.mapName + "_" + param.glmId + "-" + param.layerid2d;
+    var lid;
+
+    if (param.lid) {
+      lid = param.lid;
+    } else {
+      lid = param.mapName + "_" + param.glmId + "-" + param.layerid2d;
+    }
 
     if (param.opacity != undefined) {
       this.setOpacity(lid, param.opacity);
@@ -705,6 +710,19 @@ function GEEMap(_map) {
 
           case false:
             this.hideFusionLayerS(lid);
+            break;
+        }
+
+        break;
+
+      case "Imagery":
+        switch (param.selected) {
+          case true:
+            this.showFusionLayerS(lid, param.type);
+            break;
+
+          case false:
+            this.hideFusionLayerS(lid, param.type);
             break;
         }
 
